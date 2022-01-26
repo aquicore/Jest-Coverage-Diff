@@ -81,7 +81,7 @@ async function run(): Promise<void> {
     )
 
     // check if the test coverage is falling below delta/tolerance.
-    if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
+    if (diffChecker.checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta)) {
       if (useSameComment) {
         commentId = await findComment(
           githubClient,
@@ -91,7 +91,7 @@ async function run(): Promise<void> {
           deltaCommentIdentifier
         )
       }
-      messageToPost = `Current PR reduces the test coverage percentage by ${delta} for some tests`
+      messageToPost = `Current PR reduces the test coverage percentage by ${delta} for total functional coverage!`
       messageToPost = `${deltaCommentIdentifier}\nCommit SHA:${commitSha}\n${messageToPost}`
       await createOrUpdateComment(
         commentId,

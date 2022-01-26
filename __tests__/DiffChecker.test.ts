@@ -58,11 +58,35 @@ describe('DiffChecker', () => {
     const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld)
     const details = diffChecker.getCoverageDetails(false, '')
     expect(details).toStrictEqual([
-      ' :green_circle: | file1 | 100 **(1)** | 100 **(1)** | 100 **(1)** | 100 **(1)**',
+      ' :green_circle::dog: | file1 | 100 **(1)** | 100 **(1)** | 100 **(1)** | 100 **(1)**',
       ' :red_circle: | file2 | 99 **(-1)** | 99 **(-1)** | 99 **(-1)** | 99 **(-1)**',
       ' :sparkles: :new: | **file3** | **100** | **100** | **100** | **100**',
       ' :red_circle: | file5 | 99 **(0)** | 0 **(-99)** | 99 **(0)** | 99 **(0)**',
       ' :x: | ~~file4~~ | ~~100~~ | ~~100~~ | ~~100~~ | ~~100~~'
     ])
+  })
+
+  describe('checkIfTestCoverageFallsBelowTotalFunctionalDelta()', () => {
+    const codeCoverageOld = {
+      total: mock100CoverageFile,
+      file1: mock100CoverageFile
+    }
+    const codeCoverageNew = {
+      total: mock99CoverageFile,
+      file1: mock99CoverageFile
+    }
+    it('returns false if coverage drops greater than or equal to the delta', () => {
+      const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld)
+      diffChecker.getCoverageDetails(false, '')
+      expect(
+        diffChecker.checkIfTestCoverageFallsBelowTotalFunctionalDelta(0.5)
+      ).toBe(true)
+      expect(
+        diffChecker.checkIfTestCoverageFallsBelowTotalFunctionalDelta(1)
+      ).toBe(true)
+      expect(
+        diffChecker.checkIfTestCoverageFallsBelowTotalFunctionalDelta(2)
+      ).toBe(false)
+    })
   })
 })
