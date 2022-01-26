@@ -2073,11 +2073,11 @@ function run() {
             }
             yield createOrUpdateComment(commentId, githubClient, repoOwner, repoName, messageToPost, prNumber);
             // check if the test coverage is falling below delta/tolerance.
-            if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
+            if (diffChecker.checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta)) {
                 if (useSameComment) {
                     commentId = yield findComment(githubClient, repoName, repoOwner, prNumber, deltaCommentIdentifier);
                 }
-                messageToPost = `Current PR reduces the test coverage percentage by ${delta} for some tests`;
+                messageToPost = `Current PR reduces the test coverage percentage by ${delta} for total functional coverage!`;
                 messageToPost = `${deltaCommentIdentifier}\nCommit SHA:${commitSha}\n${messageToPost}`;
                 yield createOrUpdateComment(commentId, githubClient, repoOwner, repoName, messageToPost, prNumber);
                 throw Error(messageToPost);
@@ -6719,7 +6719,7 @@ module.exports = isPlainObject;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DiffChecker = void 0;
-const increasedCoverageIcon = ':green_circle:';
+const increasedCoverageIcon = ':green_circle::dog:';
 const decreasedCoverageIcon = ':red_circle:';
 const newCoverageIcon = ':sparkles: :new:';
 const removedCoverageIcon = ':x:';
@@ -6765,6 +6765,12 @@ class DiffChecker {
             }
         }
         return returnStrings;
+    }
+    checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta) {
+        const { total } = this.diffCoverageReport;
+        return (total &&
+            total.functions.oldPct !== total.functions.newPct &&
+            -this.getPercentageDiff(total.functions) >= delta);
     }
     checkIfTestCoverageFallsBelowDelta(delta) {
         const keys = Object.keys(this.diffCoverageReport);

@@ -4,7 +4,7 @@ import {CoverageData} from './Model/CoverageData'
 import {DiffFileCoverageData} from './Model/DiffFileCoverageData'
 import {DiffCoverageData} from './Model/DiffCoverageData'
 
-const increasedCoverageIcon = ':green_circle:'
+const increasedCoverageIcon = ':green_circle::dog:'
 const decreasedCoverageIcon = ':red_circle:'
 const newCoverageIcon = ':sparkles: :new:'
 const removedCoverageIcon = ':x:'
@@ -65,6 +65,15 @@ export class DiffChecker {
       }
     }
     return returnStrings
+  }
+
+  checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta: number): boolean {
+    const {total} = this.diffCoverageReport
+    return (
+      total &&
+      total.functions.oldPct !== total.functions.newPct &&
+      -this.getPercentageDiff(total.functions) >= delta
+    )
   }
 
   checkIfTestCoverageFallsBelowDelta(delta: number): boolean {
@@ -144,7 +153,7 @@ export class DiffChecker {
 
   private getStatusIcon(
     diffFileCoverageData: DiffFileCoverageData
-  ): ':green_circle:' | ':red_circle:' {
+  ): ':green_circle::dog:' | ':red_circle:' {
     let overallDiff = 0
     Object.values(diffFileCoverageData).forEach(coverageData => {
       overallDiff = overallDiff + this.getPercentageDiff(coverageData)
