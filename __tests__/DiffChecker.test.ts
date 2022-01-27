@@ -55,7 +55,7 @@ describe('DiffChecker', () => {
       file2: mock100CoverageFile,
       file4: mock100CoverageFile,
       file5: mock99CoverageFile,
-      file6: mock100CoverageFile,
+      file6: mock100CoverageFile
     }
     const codeCoverageNew = {
       file1: mock100CoverageFile,
@@ -67,7 +67,7 @@ describe('DiffChecker', () => {
         functions: mock99Coverage,
         lines: mock99Coverage
       },
-      file6: mock98CoverageFile,
+      file6: mock98CoverageFile
     }
     const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld)
     const details = diffChecker.getCoverageDetails(false, '', 1)

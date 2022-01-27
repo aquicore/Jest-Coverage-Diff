@@ -107,7 +107,9 @@ async function run(): Promise<void> {
 
     if (!diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
       const gif = await getGiphyGifForTag('happy pupper')
-      const imageUrl = gif?.data?.images?.fixed_height ?? 'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif'
+      const imageUrl =
+        gif?.data?.images?.fixed_height ??
+        'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif'
       if (useSameComment) {
         commentId = await findComment(
           githubClient,
@@ -182,7 +184,7 @@ async function findComment(
 }
 
 const getGiphyGifForTag = async (giphyTag: string) => {
-  const giphyFetch = new GiphyFetch(process.env.GIPHY_API_KEY)
+  const giphyFetch = new GiphyFetch(process.env.GIPHY_API_KEY ?? '')
   return giphyFetch.random({tag: giphyTag, rating: 'g'})
 }
 
