@@ -167,6 +167,7 @@ export class DiffChecker {
         cellsOverDelta++
       }
     })
+    console.log('cellsOverDelta', cellsOverDelta)
     return cellsOverDelta > 0 ? decreasedCoverageIcon : increasedCoverageIcon
   }
 
