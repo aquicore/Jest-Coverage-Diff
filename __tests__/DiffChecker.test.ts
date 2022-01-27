@@ -13,11 +13,23 @@ describe('DiffChecker', () => {
     skipped: 1,
     pct: 99
   }
+  const mock98Coverage = {
+    total: 100,
+    covered: 98,
+    skipped: 1,
+    pct: 98
+  }
   const mockEmptyCoverage = {
     total: 100,
     covered: 0,
     skipped: 100,
     pct: 0
+  }
+  const mock100CoverageFile = {
+    statements: mock100Coverage,
+    branches: mock100Coverage,
+    functions: mock100Coverage,
+    lines: mock100Coverage
   }
   const mock99CoverageFile = {
     statements: mock99Coverage,
@@ -25,11 +37,11 @@ describe('DiffChecker', () => {
     functions: mock99Coverage,
     lines: mock99Coverage
   }
-  const mock100CoverageFile = {
-    statements: mock100Coverage,
-    branches: mock100Coverage,
-    functions: mock100Coverage,
-    lines: mock100Coverage
+  const mock98CoverageFile = {
+    statements: mock98Coverage,
+    branches: mock98Coverage,
+    functions: mock98Coverage,
+    lines: mock98Coverage
   }
   const mockEmptyCoverageFile = {
     statements: mockEmptyCoverage,
@@ -42,7 +54,8 @@ describe('DiffChecker', () => {
       file1: mock99CoverageFile,
       file2: mock100CoverageFile,
       file4: mock100CoverageFile,
-      file5: mock99CoverageFile
+      file5: mock99CoverageFile,
+      file6: mock100CoverageFile,
     }
     const codeCoverageNew = {
       file1: mock100CoverageFile,
@@ -53,15 +66,17 @@ describe('DiffChecker', () => {
         branches: mockEmptyCoverage,
         functions: mock99Coverage,
         lines: mock99Coverage
-      }
+      },
+      file6: mock98CoverageFile,
     }
     const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld)
-    const details = diffChecker.getCoverageDetails(false, '')
+    const details = diffChecker.getCoverageDetails(false, '', 1)
     expect(details).toStrictEqual([
       ' :green_circle::dog: | file1 | 100 **(1)** | 100 **(1)** | 100 **(1)** | 100 **(1)**',
-      ' :red_circle: | file2 | 99 **(-1)** | 99 **(-1)** | 99 **(-1)** | 99 **(-1)**',
+      ' :green_circle::dog: | file2 | 99 **(-1)** | 99 **(-1)** | 99 **(-1)** | 99 **(-1)**',
       ' :sparkles: :new: | **file3** | **100** | **100** | **100** | **100**',
       ' :red_circle: | file5 | 99 **(0)** | 0 **(-99)** | 99 **(0)** | 99 **(0)**',
+      ' :red_circle: | file6 | 98 **(-2)** | 98 **(-2)** | 98 **(-2)** | 98 **(-2)**',
       ' :x: | ~~file4~~ | ~~100~~ | ~~100~~ | ~~100~~ | ~~100~~'
     ])
   })

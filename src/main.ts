@@ -7,6 +7,7 @@ import {DiffChecker} from './DiffChecker'
 import {Octokit} from '@octokit/core'
 import {PaginateInterface} from '@octokit/plugin-paginate-rest'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
+import {GiphyFetch} from '@giphy/js-fetch-api'
 
 async function run(): Promise<void> {
   try {
@@ -51,7 +52,8 @@ async function run(): Promise<void> {
     Code coverage diff between base branch:${branchNameBase} and head branch: ${branchNameHead} \n\n`
     const coverageDetails = diffChecker.getCoverageDetails(
       !fullCoverage,
-      `${currentDirectory}/`
+      `${currentDirectory}/`,
+      delta
     )
     if (coverageDetails.length === 0) {
       messageToPost =
@@ -80,7 +82,6 @@ async function run(): Promise<void> {
       prNumber
     )
 
-    // check if the test coverage is falling below delta/tolerance.
     if (diffChecker.checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta)) {
       if (useSameComment) {
         commentId = await findComment(
@@ -93,6 +94,30 @@ async function run(): Promise<void> {
       }
       messageToPost = `Current PR reduces the test coverage percentage by ${delta} for total functional coverage!`
       messageToPost = `${deltaCommentIdentifier}\nCommit SHA:${commitSha}\n${messageToPost}`
+      await createOrUpdateComment(
+        commentId,
+        githubClient,
+        repoOwner,
+        repoName,
+        messageToPost,
+        prNumber
+      )
+      throw Error(messageToPost)
+    }
+
+    if (!diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
+      const gif = await getGiphyGifForTag('happy pupper')
+      const imageUrl = gif?.data?.images?.fixed_height ?? 'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif'
+      if (useSameComment) {
+        commentId = await findComment(
+          githubClient,
+          repoName,
+          repoOwner,
+          prNumber,
+          deltaCommentIdentifier
+        )
+      }
+      messageToPost = `Wow! Such test coverage! Much excite!\n![](${imageUrl})\n\nPowered By GIPHY`
       await createOrUpdateComment(
         commentId,
         githubClient,
@@ -154,6 +179,11 @@ async function findComment(
     }
   }
   return 0
+}
+
+const getGiphyGifForTag = async (giphyTag: string) => {
+  const giphyFetch = new GiphyFetch(process.env.GIPHY_API_KEY)
+  return giphyFetch.random({tag: giphyTag, rating: 'g'})
 }
 
 run()
