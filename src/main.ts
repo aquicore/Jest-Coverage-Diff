@@ -128,7 +128,6 @@ async function run(): Promise<void> {
         messageToPost,
         prNumber
       )
-      throw Error(messageToPost)
     }
   } catch (error) {
     core.setFailed(error)
