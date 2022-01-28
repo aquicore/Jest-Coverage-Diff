@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import axios from 'axios'
 import {execSync} from 'child_process'
 import fs from 'fs'
 import {CoverageReport} from './Model/CoverageReport'
@@ -7,7 +8,6 @@ import {DiffChecker} from './DiffChecker'
 import {Octokit} from '@octokit/core'
 import {PaginateInterface} from '@octokit/plugin-paginate-rest'
 import {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types'
-import {GiphyFetch} from '@giphy/js-fetch-api'
 
 async function run(): Promise<void> {
   try {
@@ -108,7 +108,7 @@ async function run(): Promise<void> {
     if (!diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
       const gif = await getGiphyGifForTag('happy pupper')
       const imageUrl =
-        gif?.data?.images?.fixed_height ??
+        gif?.images?.fixed_height?.url ??
         'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif'
       if (useSameComment) {
         commentId = await findComment(
@@ -183,9 +183,20 @@ async function findComment(
   return 0
 }
 
-const getGiphyGifForTag = async (giphyTag: string) => {
-  const giphyFetch = new GiphyFetch(process.env.GIPHY_API_KEY ?? '')
-  return giphyFetch.random({tag: giphyTag, rating: 'g'})
+export const getGiphyGifForTag = async (giphyTag: string) => {
+  return axios
+    .get('https://api.giphy.com/v1/gifs/random', {
+      params: {
+        tag: giphyTag,
+        rating: 'g',
+        fmt: 'json',
+        api_key: process.env.GIPHY_API_KEY ?? 'not-set'
+      }
+    })
+    .then(giphyRes => giphyRes.data.data)
+    .catch(err => {
+      console.log(err)
+    })
 }
 
 run()
