@@ -2907,7 +2907,6 @@ exports.getGiphyGifForTag = (giphyTag) => __awaiter(void 0, void 0, void 0, func
         .get('https://api.giphy.com/v1/gifs/random', {
         params: {
             tag: giphyTag,
-            rating: 'pg-13',
             fmt: 'json',
             api_key: (_a = process.env.GIPHY_API_KEY) !== null && _a !== void 0 ? _a : 'not-set'
         }

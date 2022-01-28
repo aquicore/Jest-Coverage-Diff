@@ -190,7 +190,6 @@ export const getGiphyGifForTag = async (giphyTag: string) => {
     .get('https://api.giphy.com/v1/gifs/random', {
       params: {
         tag: giphyTag,
-        rating: 'pg-13',
         fmt: 'json',
         api_key: process.env.GIPHY_API_KEY ?? 'not-set'
       }
