@@ -107,6 +107,11 @@ async function run(): Promise<void> {
 
     if (!diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
       const gif = await getGiphyGifForTag('happy pupper')
+      console.log('gif', gif)
+      console.log(
+        'gif?.images?.fixed_height?.url',
+        gif?.images?.fixed_height?.url
+      )
       const imageUrl =
         gif?.images?.fixed_height?.url ??
         'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif'

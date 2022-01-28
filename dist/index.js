@@ -2789,7 +2789,7 @@ const child_process_1 = __webpack_require__(129);
 const fs_1 = __importDefault(__webpack_require__(747));
 const DiffChecker_1 = __webpack_require__(563);
 function run() {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const repoName = github.context.repo.repo;
@@ -2850,13 +2850,14 @@ function run() {
             }
             if (!diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
                 const gif = yield exports.getGiphyGifForTag('happy pupper');
-                const imageUrl = (_e = (_d = (_c = gif === null || gif === void 0 ? void 0 : gif.images) === null || _c === void 0 ? void 0 : _c.fixed_height) === null || _d === void 0 ? void 0 : _d.url) !== null && _e !== void 0 ? _e : 'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif';
+                console.log('gif', gif);
+                console.log('gif?.images?.fixed_height?.url', (_d = (_c = gif === null || gif === void 0 ? void 0 : gif.images) === null || _c === void 0 ? void 0 : _c.fixed_height) === null || _d === void 0 ? void 0 : _d.url);
+                const imageUrl = (_g = (_f = (_e = gif === null || gif === void 0 ? void 0 : gif.images) === null || _e === void 0 ? void 0 : _e.fixed_height) === null || _f === void 0 ? void 0 : _f.url) !== null && _g !== void 0 ? _g : 'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif';
                 if (useSameComment) {
                     commentId = yield findComment(githubClient, repoName, repoOwner, prNumber, deltaCommentIdentifier);
                 }
                 messageToPost = `Wow! Such test coverage! Much excite!\n![](${imageUrl})\n\nPowered By GIPHY`;
                 yield createOrUpdateComment(commentId, githubClient, repoOwner, repoName, messageToPost, prNumber);
-                throw Error(messageToPost);
             }
         }
         catch (error) {

@@ -6,13 +6,11 @@ jest.mock('axios')
 describe('main', () => {
   describe('getGiphyGifForTag()', () => {
     it('calls axios with the correct params', async () => {
-      const getSpy = jest
-        .spyOn(axios, 'get')
-        .mockResolvedValue({
-          data: {
-            data: {images: {fixed_height: {url: 'https://giphy.com/gif/123'}}}
-          }
-        })
+      const getSpy = jest.spyOn(axios, 'get').mockResolvedValue({
+        data: {
+          data: {images: {fixed_height: {url: 'https://giphy.com/gif/123'}}}
+        }
+      })
       const tag = 'test ing'
       await getGiphyGifForTag(tag)
       expect(getSpy).toHaveBeenCalledWith(
