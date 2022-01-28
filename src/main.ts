@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import axios from 'axios'
 import {execSync} from 'child_process'
 import fs from 'fs'
 import {CoverageReport} from './Model/CoverageReport'
@@ -51,7 +52,8 @@ async function run(): Promise<void> {
     Code coverage diff between base branch:${branchNameBase} and head branch: ${branchNameHead} \n\n`
     const coverageDetails = diffChecker.getCoverageDetails(
       !fullCoverage,
-      `${currentDirectory}/`
+      `${currentDirectory}/`,
+      delta
     )
     if (coverageDetails.length === 0) {
       messageToPost =
@@ -80,7 +82,6 @@ async function run(): Promise<void> {
       prNumber
     )
 
-    // check if the test coverage is falling below delta/tolerance.
     if (diffChecker.checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta)) {
       if (useSameComment) {
         commentId = await findComment(
@@ -102,6 +103,31 @@ async function run(): Promise<void> {
         prNumber
       )
       throw Error(messageToPost)
+    }
+
+    if (!diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
+      const gif = await getGiphyGifForTag('happy dog')
+      const imageUrl =
+        gif?.images?.fixed_height?.url ??
+        'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif'
+      if (useSameComment) {
+        commentId = await findComment(
+          githubClient,
+          repoName,
+          repoOwner,
+          prNumber,
+          deltaCommentIdentifier
+        )
+      }
+      messageToPost = `Wow! Such test coverage! Much excite!\n![](${imageUrl})\n\nPowered By GIPHY`
+      await createOrUpdateComment(
+        commentId,
+        githubClient,
+        repoOwner,
+        repoName,
+        messageToPost,
+        prNumber
+      )
     }
   } catch (error) {
     core.setFailed(error)
@@ -154,6 +180,24 @@ async function findComment(
     }
   }
   return 0
+}
+
+export const getGiphyGifForTag = async (giphyTag: string) => {
+  if (!process.env.GIPHY_API_KEY) {
+    console.warn('GIPHY_API_KEY is not set')
+  }
+  return axios
+    .get('https://api.giphy.com/v1/gifs/random', {
+      params: {
+        tag: giphyTag,
+        fmt: 'json',
+        api_key: process.env.GIPHY_API_KEY ?? 'not-set'
+      }
+    })
+    .then(giphyRes => giphyRes.data.data)
+    .catch(err => {
+      console.warn('Axios call failed with error: ', err)
+    })
 }
 
 run()

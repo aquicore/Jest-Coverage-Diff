@@ -41,7 +41,11 @@ export class DiffChecker {
     }
   }
 
-  getCoverageDetails(diffOnly: boolean, currentDirectory: string): string[] {
+  getCoverageDetails(
+    diffOnly: boolean,
+    currentDirectory: string,
+    delta = 1
+  ): string[] {
     const keys = Object.keys(this.diffCoverageReport)
     const returnStrings: string[] = []
     for (const key of keys) {
@@ -49,7 +53,8 @@ export class DiffChecker {
         returnStrings.push(
           this.createDiffLine(
             key.replace(currentDirectory, ''),
-            this.diffCoverageReport[key]
+            this.diffCoverageReport[key],
+            delta
           )
         )
       } else {
@@ -93,7 +98,7 @@ export class DiffChecker {
       }
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
-          if (-this.getPercentageDiff(diffCoverageData[key]) > delta) {
+          if (-this.getPercentageDiff(diffCoverageData[key]) >= delta) {
             return true
           }
         }
@@ -105,7 +110,8 @@ export class DiffChecker {
 
   private createDiffLine(
     name: string,
-    diffFileCoverageData: DiffFileCoverageData
+    diffFileCoverageData: DiffFileCoverageData,
+    delta: number
   ): string {
     // No old coverage found so that means we added a new file coverage
     const fileNewCoverage = Object.values(diffFileCoverageData).every(
@@ -121,7 +127,7 @@ export class DiffChecker {
       return ` ${removedCoverageIcon} | ~~${name}~~ | ~~${diffFileCoverageData.statements.oldPct}~~ | ~~${diffFileCoverageData.branches.oldPct}~~ | ~~${diffFileCoverageData.functions.oldPct}~~ | ~~${diffFileCoverageData.lines.oldPct}~~`
     }
     // Coverage existed before so calculate the diff status
-    const statusIcon = this.getStatusIcon(diffFileCoverageData)
+    const statusIcon = this.getStatusIcon(diffFileCoverageData, delta)
     return ` ${statusIcon} | ${name} | ${
       diffFileCoverageData.statements.newPct
     } **(${this.getPercentageDiff(diffFileCoverageData.statements)})** | ${
@@ -152,16 +158,16 @@ export class DiffChecker {
   }
 
   private getStatusIcon(
-    diffFileCoverageData: DiffFileCoverageData
+    diffFileCoverageData: DiffFileCoverageData,
+    delta: number
   ): ':green_circle::dog:' | ':red_circle:' {
-    let overallDiff = 0
+    let cellsOverDelta = 0
     Object.values(diffFileCoverageData).forEach(coverageData => {
-      overallDiff = overallDiff + this.getPercentageDiff(coverageData)
+      if (-this.getPercentageDiff(coverageData) > delta) {
+        cellsOverDelta++
+      }
     })
-    if (overallDiff < 0) {
-      return decreasedCoverageIcon
-    }
-    return increasedCoverageIcon
+    return cellsOverDelta > 0 ? decreasedCoverageIcon : increasedCoverageIcon
   }
 
   private getPercentageDiff(diffData: DiffCoverageData): number {
