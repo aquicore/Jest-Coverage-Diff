@@ -19,7 +19,7 @@ describe('main', () => {
           params: {
             api_key: process.env.GIPHY_API_KEY ?? 'not-set',
             fmt: 'json',
-            rating: 'g',
+            rating: 'pg-13',
             tag: tag
           }
         }

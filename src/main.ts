@@ -106,12 +106,7 @@ async function run(): Promise<void> {
     }
 
     if (!diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
-      const gif = await getGiphyGifForTag('happy pupper')
-      console.log('gif', gif)
-      console.log(
-        'gif?.images?.fixed_height?.url',
-        gif?.images?.fixed_height?.url
-      )
+      const gif = await getGiphyGifForTag('happy dog')
       const imageUrl =
         gif?.images?.fixed_height?.url ??
         'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif'
@@ -188,18 +183,21 @@ async function findComment(
 }
 
 export const getGiphyGifForTag = async (giphyTag: string) => {
+  if (!process.env.GIPHY_API_KEY) {
+    console.warn('GIPHY_API_KEY is not set')
+  }
   return axios
     .get('https://api.giphy.com/v1/gifs/random', {
       params: {
         tag: giphyTag,
-        rating: 'g',
+        rating: 'pg-13',
         fmt: 'json',
         api_key: process.env.GIPHY_API_KEY ?? 'not-set'
       }
     })
     .then(giphyRes => giphyRes.data.data)
     .catch(err => {
-      console.log(err)
+      console.warn('Axios call failed with error: ', err)
     })
 }
 
