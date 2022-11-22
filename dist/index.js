@@ -2808,8 +2808,11 @@ function run() {
             const commentIdentifier = `<!-- codeCoverageDiffComment -->`;
             const deltaCommentIdentifier = `<!-- codeCoverageDeltaComment -->`;
             let commentId = null;
+            core.info(`Running command: ${commandToRun}`);
             child_process_1.execSync(commandToRun);
             const codeCoverageNew = (JSON.parse(fs_1.default.readFileSync('coverage-summary.json').toString()));
+            core.info(JSON.stringify(codeCoverageNew, null, 2));
+            core.info(`Switching to base branch: ${branchNameBase}`);
             child_process_1.execSync('/usr/bin/git fetch');
             child_process_1.execSync('/usr/bin/git stash');
             child_process_1.execSync(`/usr/bin/git checkout --progress --force ${branchNameBase}`);
@@ -2818,6 +2821,8 @@ function run() {
             }
             child_process_1.execSync(commandToRun);
             const codeCoverageOld = (JSON.parse(fs_1.default.readFileSync('coverage-summary.json').toString()));
+            core.info(commandToRun);
+            core.info(JSON.stringify(codeCoverageOld, null, 2));
             const currentDirectory = child_process_1.execSync('pwd')
                 .toString()
                 .trim();
@@ -2839,7 +2844,9 @@ function run() {
                 commentId = yield findComment(githubClient, repoName, repoOwner, prNumber, commentIdentifier);
             }
             yield createOrUpdateComment(commentId, githubClient, repoOwner, repoName, messageToPost, prNumber);
+            core.info('1');
             if (diffChecker.checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta)) {
+                core.info('Test coverage falls below total functional delta');
                 if (useSameComment) {
                     commentId = yield findComment(githubClient, repoName, repoOwner, prNumber, deltaCommentIdentifier);
                 }
@@ -2848,6 +2855,7 @@ function run() {
                 yield createOrUpdateComment(commentId, githubClient, repoOwner, repoName, messageToPost, prNumber);
                 throw Error(messageToPost);
             }
+            core.info('2');
             if (!diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
                 const gif = yield exports.getGiphyGifForTag('happy dog');
                 const imageUrl = (_e = (_d = (_c = gif === null || gif === void 0 ? void 0 : gif.images) === null || _c === void 0 ? void 0 : _c.fixed_height) === null || _d === void 0 ? void 0 : _d.url) !== null && _e !== void 0 ? _e : 'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif';

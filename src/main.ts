@@ -27,10 +27,13 @@ async function run(): Promise<void> {
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
     const deltaCommentIdentifier = `<!-- codeCoverageDeltaComment -->`
     let commentId = null
+    core.info(`Running command: ${commandToRun}`)
     execSync(commandToRun)
     const codeCoverageNew = <CoverageReport>(
       JSON.parse(fs.readFileSync('coverage-summary.json').toString())
     )
+    core.info(JSON.stringify(codeCoverageNew, null, 2))
+    core.info(`Switching to base branch: ${branchNameBase}`)
     execSync('/usr/bin/git fetch')
     execSync('/usr/bin/git stash')
     execSync(`/usr/bin/git checkout --progress --force ${branchNameBase}`)
@@ -41,6 +44,8 @@ async function run(): Promise<void> {
     const codeCoverageOld = <CoverageReport>(
       JSON.parse(fs.readFileSync('coverage-summary.json').toString())
     )
+    core.info(commandToRun)
+    core.info(JSON.stringify(codeCoverageOld, null, 2))
     const currentDirectory = execSync('pwd')
       .toString()
       .trim()
@@ -82,7 +87,9 @@ async function run(): Promise<void> {
       prNumber
     )
 
+    core.info('1')
     if (diffChecker.checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta)) {
+      core.info('Test coverage falls below total functional delta')
       if (useSameComment) {
         commentId = await findComment(
           githubClient,
@@ -104,6 +111,7 @@ async function run(): Promise<void> {
       )
       throw Error(messageToPost)
     }
+    core.info('2')
 
     if (!diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
       const gif = await getGiphyGifForTag('happy dog')
