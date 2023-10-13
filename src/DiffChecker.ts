@@ -3,6 +3,7 @@ import {DiffCoverageReport} from './Model/DiffCoverageReport'
 import {CoverageData} from './Model/CoverageData'
 import {DiffFileCoverageData} from './Model/DiffFileCoverageData'
 import {DiffCoverageData} from './Model/DiffCoverageData'
+import {FileCoverageData} from './Model/FileCoverageData'
 
 const increasedCoverageIcon = ':green_circle::dog:'
 const decreasedCoverageIcon = ':red_circle:'
@@ -19,23 +20,54 @@ export class DiffChecker {
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
 
+    const temporaryReport = JSON.parse(JSON.stringify(coverageReportOld))
+    for (const filePath of reportNewKeys) {
+      if (filePath === 'total') continue
+      temporaryReport[filePath] = coverageReportNew[filePath]
+    }
+    const total: {[index: string]: any} = {
+      lines: {total: 0, covered: 0, skipped: 0, pct: 0},
+      statements: {total: 0, covered: 0, skipped: 0, pct: 0},
+      functions: {total: 0, covered: 0, skipped: 0, pct: 0},
+      branches: {total: 0, covered: 0, skipped: 0, pct: 0}
+    }
+    for (const key in temporaryReport) {
+      if (key === 'total') continue
+      const item = temporaryReport[key]
+      for (const metricType in item) {
+        const metric = item[metricType]
+        total[metricType]['total'] += metric.total
+        total[metricType]['covered'] += metric.covered
+        total[metricType]['skipped'] += metric.skipped
+      }
+    }
+
+    for (const metricType in total) {
+      const metric = total[metricType]
+      metric.pct = Math.floor((metric.covered / metric.total) * 100 * 100) / 100
+    }
+
+    coverageReportNew.total = <FileCoverageData>total
+
     for (const filePath of reportKeys) {
-      this.diffCoverageReport[filePath] = {
-        branches: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.branches),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.branches)
-        },
-        statements: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.statements),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.statements)
-        },
-        lines: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.lines),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.lines)
-        },
-        functions: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.functions),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.functions)
+      if (reportNewKeys.includes(filePath)) {
+        this.diffCoverageReport[filePath] = {
+          branches: {
+            newPct: this.getPercentage(coverageReportNew[filePath]?.branches),
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.branches)
+          },
+          statements: {
+            newPct: this.getPercentage(coverageReportNew[filePath]?.statements),
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.statements)
+          },
+          lines: {
+            newPct: this.getPercentage(coverageReportNew[filePath]?.lines),
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.lines)
+          },
+          functions: {
+            newPct: this.getPercentage(coverageReportNew[filePath]?.functions),
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.functions)
+          }
         }
       }
     }
@@ -74,17 +106,19 @@ export class DiffChecker {
 
   checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta: number): boolean {
     const {total} = this.diffCoverageReport
+    const funcPercentageDiff = this.getPercentageDiff(total.functions)
     return (
       total &&
       total.functions.oldPct !== total.functions.newPct &&
-      -this.getPercentageDiff(total.functions) >= delta
+      funcPercentageDiff < 0 &&
+      Math.abs(funcPercentageDiff) >= delta
     )
   }
 
   checkIfTestCoverageFallsBelowDelta(delta: number): boolean {
-    const keys = Object.keys(this.diffCoverageReport)
-    for (const key of keys) {
-      const diffCoverageData = this.diffCoverageReport[key]
+    const changedFiles = Object.keys(this.diffCoverageReport)
+    for (const fileName of changedFiles) {
+      const diffCoverageData = this.diffCoverageReport[fileName]
       const keys: ('lines' | 'statements' | 'branches' | 'functions')[] = <
         ('lines' | 'statements' | 'branches' | 'functions')[]
       >Object.keys(diffCoverageData)
@@ -98,7 +132,8 @@ export class DiffChecker {
       }
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
-          if (-this.getPercentageDiff(diffCoverageData[key]) >= delta) {
+          const percentageDiff = this.getPercentageDiff(diffCoverageData[key])
+          if (percentageDiff < 0 && Math.abs(percentageDiff) >= delta) {
             return true
           }
         }
