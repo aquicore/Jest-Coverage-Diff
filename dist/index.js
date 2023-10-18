@@ -2789,7 +2789,7 @@ const child_process_1 = __webpack_require__(129);
 const fs_1 = __importDefault(__webpack_require__(747));
 const DiffChecker_1 = __webpack_require__(563);
 function run() {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const repoName = github.context.repo.repo;
@@ -2803,21 +2803,15 @@ function run() {
             const githubClient = github.getOctokit(githubToken);
             const prNumber = github.context.issue.number;
             const branchNameBase = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.base.ref;
-            const branchNameHead = (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.head.ref;
+            const baseBranchSha = (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.base.sha;
+            const branchNameHead = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.head.ref;
             const useSameComment = JSON.parse(core.getInput('useSameComment'));
             const commentIdentifier = `<!-- codeCoverageDiffComment -->`;
             const deltaCommentIdentifier = `<!-- codeCoverageDeltaComment -->`;
             let commentId = null;
             child_process_1.execSync(commandToRun);
             const codeCoverageNew = (JSON.parse(fs_1.default.readFileSync('coverage-summary.json').toString()));
-            child_process_1.execSync('/usr/bin/git fetch');
-            child_process_1.execSync('/usr/bin/git stash');
-            child_process_1.execSync(`/usr/bin/git checkout --progress --force ${branchNameBase}`);
-            if (commandAfterSwitch) {
-                child_process_1.execSync(commandAfterSwitch);
-            }
-            child_process_1.execSync(commandToRun);
-            const codeCoverageOld = (JSON.parse(fs_1.default.readFileSync('coverage-summary.json').toString()));
+            const codeCoverageOld = (JSON.parse(fs_1.default.readFileSync('coverage-summary-main.json').toString()));
             const currentDirectory = child_process_1.execSync('pwd')
                 .toString()
                 .trim();
@@ -2849,8 +2843,9 @@ function run() {
                 throw Error(messageToPost);
             }
             if (!diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
-                const gif = yield exports.getGiphyGifForTag('happy dog');
-                const imageUrl = (_e = (_d = (_c = gif === null || gif === void 0 ? void 0 : gif.images) === null || _c === void 0 ? void 0 : _c.fixed_height) === null || _d === void 0 ? void 0 : _d.url) !== null && _e !== void 0 ? _e : 'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif';
+                const randomChoiceTag = Math.random() < 0.6 ? 'happy dog' : 'happy cat';
+                const gif = yield exports.getGiphyGifForTag(randomChoiceTag);
+                const imageUrl = (_f = (_e = (_d = gif === null || gif === void 0 ? void 0 : gif.images) === null || _d === void 0 ? void 0 : _d.fixed_height) === null || _e === void 0 ? void 0 : _e.url) !== null && _f !== void 0 ? _f : 'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif';
                 if (useSameComment) {
                     commentId = yield findComment(githubClient, repoName, repoOwner, prNumber, deltaCommentIdentifier);
                 }
@@ -9824,25 +9819,55 @@ class DiffChecker {
         const reportNewKeys = Object.keys(coverageReportNew);
         const reportOldKeys = Object.keys(coverageReportOld);
         const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
+        const temporaryReport = JSON.parse(JSON.stringify(coverageReportOld));
+        for (const filePath of reportNewKeys) {
+            if (filePath === 'total')
+                continue;
+            temporaryReport[filePath] = coverageReportNew[filePath];
+        }
+        const total = {
+            lines: { total: 0, covered: 0, skipped: 0, pct: 0 },
+            statements: { total: 0, covered: 0, skipped: 0, pct: 0 },
+            functions: { total: 0, covered: 0, skipped: 0, pct: 0 },
+            branches: { total: 0, covered: 0, skipped: 0, pct: 0 }
+        };
+        for (const key in temporaryReport) {
+            if (key === 'total')
+                continue;
+            const item = temporaryReport[key];
+            for (const metricType in item) {
+                const metric = item[metricType];
+                total[metricType]['total'] += metric.total;
+                total[metricType]['covered'] += metric.covered;
+                total[metricType]['skipped'] += metric.skipped;
+            }
+        }
+        for (const metricType in total) {
+            const metric = total[metricType];
+            metric.pct = Math.floor((metric.covered / metric.total) * 100 * 100) / 100;
+        }
+        coverageReportNew.total = total;
         for (const filePath of reportKeys) {
-            this.diffCoverageReport[filePath] = {
-                branches: {
-                    newPct: this.getPercentage((_a = coverageReportNew[filePath]) === null || _a === void 0 ? void 0 : _a.branches),
-                    oldPct: this.getPercentage((_b = coverageReportOld[filePath]) === null || _b === void 0 ? void 0 : _b.branches)
-                },
-                statements: {
-                    newPct: this.getPercentage((_c = coverageReportNew[filePath]) === null || _c === void 0 ? void 0 : _c.statements),
-                    oldPct: this.getPercentage((_d = coverageReportOld[filePath]) === null || _d === void 0 ? void 0 : _d.statements)
-                },
-                lines: {
-                    newPct: this.getPercentage((_e = coverageReportNew[filePath]) === null || _e === void 0 ? void 0 : _e.lines),
-                    oldPct: this.getPercentage((_f = coverageReportOld[filePath]) === null || _f === void 0 ? void 0 : _f.lines)
-                },
-                functions: {
-                    newPct: this.getPercentage((_g = coverageReportNew[filePath]) === null || _g === void 0 ? void 0 : _g.functions),
-                    oldPct: this.getPercentage((_h = coverageReportOld[filePath]) === null || _h === void 0 ? void 0 : _h.functions)
-                }
-            };
+            if (reportNewKeys.includes(filePath)) {
+                this.diffCoverageReport[filePath] = {
+                    branches: {
+                        newPct: this.getPercentage((_a = coverageReportNew[filePath]) === null || _a === void 0 ? void 0 : _a.branches),
+                        oldPct: this.getPercentage((_b = coverageReportOld[filePath]) === null || _b === void 0 ? void 0 : _b.branches)
+                    },
+                    statements: {
+                        newPct: this.getPercentage((_c = coverageReportNew[filePath]) === null || _c === void 0 ? void 0 : _c.statements),
+                        oldPct: this.getPercentage((_d = coverageReportOld[filePath]) === null || _d === void 0 ? void 0 : _d.statements)
+                    },
+                    lines: {
+                        newPct: this.getPercentage((_e = coverageReportNew[filePath]) === null || _e === void 0 ? void 0 : _e.lines),
+                        oldPct: this.getPercentage((_f = coverageReportOld[filePath]) === null || _f === void 0 ? void 0 : _f.lines)
+                    },
+                    functions: {
+                        newPct: this.getPercentage((_g = coverageReportNew[filePath]) === null || _g === void 0 ? void 0 : _g.functions),
+                        oldPct: this.getPercentage((_h = coverageReportOld[filePath]) === null || _h === void 0 ? void 0 : _h.functions)
+                    }
+                };
+            }
         }
     }
     getCoverageDetails(diffOnly, currentDirectory, delta = 1) {
@@ -9862,14 +9887,16 @@ class DiffChecker {
     }
     checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta) {
         const { total } = this.diffCoverageReport;
+        const funcPercentageDiff = this.getPercentageDiff(total.functions);
         return (total &&
             total.functions.oldPct !== total.functions.newPct &&
-            -this.getPercentageDiff(total.functions) >= delta);
+            funcPercentageDiff < 0 &&
+            Math.abs(funcPercentageDiff) >= delta);
     }
     checkIfTestCoverageFallsBelowDelta(delta) {
-        const keys = Object.keys(this.diffCoverageReport);
-        for (const key of keys) {
-            const diffCoverageData = this.diffCoverageReport[key];
+        const changedFiles = Object.keys(this.diffCoverageReport);
+        for (const fileName of changedFiles) {
+            const diffCoverageData = this.diffCoverageReport[fileName];
             const keys = Object.keys(diffCoverageData);
             // No new coverage found so that means we deleted a file coverage
             const fileRemovedCoverage = Object.values(diffCoverageData).every(coverageData => coverageData.newPct === 0);
@@ -9879,7 +9906,8 @@ class DiffChecker {
             }
             for (const key of keys) {
                 if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
-                    if (-this.getPercentageDiff(diffCoverageData[key]) >= delta) {
+                    const percentageDiff = this.getPercentageDiff(diffCoverageData[key]);
+                    if (percentageDiff < 0 && Math.abs(percentageDiff) >= delta) {
                         return true;
                     }
                 }

@@ -22,6 +22,7 @@ async function run(): Promise<void> {
     const githubClient = github.getOctokit(githubToken)
     const prNumber = github.context.issue.number
     const branchNameBase = github.context.payload.pull_request?.base.ref
+    const baseBranchSha = github.context.payload.pull_request?.base.sha
     const branchNameHead = github.context.payload.pull_request?.head.ref
     const useSameComment = JSON.parse(core.getInput('useSameComment'))
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
@@ -31,16 +32,10 @@ async function run(): Promise<void> {
     const codeCoverageNew = <CoverageReport>(
       JSON.parse(fs.readFileSync('coverage-summary.json').toString())
     )
-    execSync('/usr/bin/git fetch')
-    execSync('/usr/bin/git stash')
-    execSync(`/usr/bin/git checkout --progress --force ${branchNameBase}`)
-    if (commandAfterSwitch) {
-      execSync(commandAfterSwitch)
-    }
-    execSync(commandToRun)
     const codeCoverageOld = <CoverageReport>(
-      JSON.parse(fs.readFileSync('coverage-summary.json').toString())
+      JSON.parse(fs.readFileSync('coverage-summary-main.json').toString())
     )
+
     const currentDirectory = execSync('pwd')
       .toString()
       .trim()
@@ -55,6 +50,7 @@ async function run(): Promise<void> {
       `${currentDirectory}/`,
       delta
     )
+
     if (coverageDetails.length === 0) {
       messageToPost =
         'No changes to code coverage between the base branch and the head branch'
@@ -106,7 +102,8 @@ async function run(): Promise<void> {
     }
 
     if (!diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
-      const gif = await getGiphyGifForTag('happy dog')
+      const randomChoiceTag = Math.random() < 0.6 ? 'happy dog' : 'happy cat'
+      const gif = await getGiphyGifForTag(randomChoiceTag)
       const imageUrl =
         gif?.images?.fixed_height?.url ??
         'https://media4.giphy.com/media/3ndAvMC5LFPNMCzq7m/200.gif'
