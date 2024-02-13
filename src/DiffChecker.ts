@@ -26,22 +26,24 @@ export class DiffChecker {
     console.log('Report keys: ', reportKeys)
 
     for (const filePath of reportKeys) {
-      this.diffCoverageReport[filePath] = {
-        branches: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.branches),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.branches)
-        },
-        statements: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.statements),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.statements)
-        },
-        lines: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.lines),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.lines)
-        },
-        functions: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.functions),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.functions)
+      if (reportNewKeys.includes(filePath)) {
+        this.diffCoverageReport[filePath] = {
+          branches: {
+            newPct: this.getPercentage(coverageReportNew[filePath]?.branches),
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.branches)
+          },
+          statements: {
+            newPct: this.getPercentage(coverageReportNew[filePath]?.statements),
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.statements)
+          },
+          lines: {
+            newPct: this.getPercentage(coverageReportNew[filePath]?.lines),
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.lines)
+          },
+          functions: {
+            newPct: this.getPercentage(coverageReportNew[filePath]?.functions),
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.functions)
+          }
         }
       }
     }
