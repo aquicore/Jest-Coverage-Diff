@@ -21,16 +21,14 @@ export class DiffChecker {
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
 
     const temporaryReport = JSON.parse(JSON.stringify(coverageReportOld))
-    for (const filePath of reportNewKeys) {
-      if (filePath === 'total') continue
-      temporaryReport[filePath] = coverageReportNew[filePath]
-    }
+
     const total: {[index: string]: any} = {
       lines: {total: 0, covered: 0, skipped: 0, pct: 0},
       statements: {total: 0, covered: 0, skipped: 0, pct: 0},
       functions: {total: 0, covered: 0, skipped: 0, pct: 0},
       branches: {total: 0, covered: 0, skipped: 0, pct: 0}
     }
+
     for (const key in temporaryReport) {
       if (key !== 'total') continue
       const item = temporaryReport[key]
@@ -110,7 +108,7 @@ export class DiffChecker {
     return (
       total &&
       total.functions.oldPct !== total.functions.newPct &&
-      Math.abs(funcPercentageDiff) >= delta
+      funcPercentageDiff >= delta
     )
   }
 
@@ -132,7 +130,7 @@ export class DiffChecker {
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
           const percentageDiff = this.getPercentageDiff(diffCoverageData[key])
-          if (Math.abs(percentageDiff) >= delta) {
+          if (percentageDiff >= delta) {
             return true
           }
         }
