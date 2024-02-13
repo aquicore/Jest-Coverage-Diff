@@ -9819,6 +9819,9 @@ class DiffChecker {
         const reportNewKeys = Object.keys(coverageReportNew);
         const reportOldKeys = Object.keys(coverageReportOld);
         const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
+        console.log('New Report keys: ', reportNewKeys);
+        console.log('Old Report keys: ', reportOldKeys);
+        console.log('Report keys: ', reportKeys);
         const temporaryReport = JSON.parse(JSON.stringify(coverageReportOld));
         for (const filePath of reportNewKeys) {
             if (filePath === 'total')
@@ -9837,14 +9840,14 @@ class DiffChecker {
             const item = temporaryReport[key];
             for (const metricType in item) {
                 const metric = item[metricType];
-                total[metricType]['total'] += Number(metric.total);
-                total[metricType]['covered'] += Number(metric.covered);
-                total[metricType]['skipped'] += Number(metric.skipped);
+                total[metricType]['total'] += metric.total;
+                total[metricType]['covered'] += metric.covered;
+                total[metricType]['skipped'] += metric.skipped;
             }
         }
         for (const metricType in total) {
             const metric = total[metricType];
-            metric.pct = Math.floor((metric.covered / metric.total) * 100);
+            metric.pct = Math.floor((metric.covered / metric.total) * 100 * 100) / 100;
         }
         coverageReportNew.total = total;
         for (const filePath of reportKeys) {
@@ -9890,7 +9893,8 @@ class DiffChecker {
         const funcPercentageDiff = this.getPercentageDiff(total.functions);
         return (total &&
             total.functions.oldPct !== total.functions.newPct &&
-            funcPercentageDiff >= delta);
+            funcPercentageDiff < 0 &&
+            Math.abs(funcPercentageDiff) >= delta);
     }
     checkIfTestCoverageFallsBelowDelta(delta) {
         const changedFiles = Object.keys(this.diffCoverageReport);
@@ -9906,7 +9910,7 @@ class DiffChecker {
             for (const key of keys) {
                 if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
                     const percentageDiff = this.getPercentageDiff(diffCoverageData[key]);
-                    if (percentageDiff >= delta) {
+                    if (percentageDiff < 0 && Math.abs(percentageDiff) >= delta) {
                         return true;
                     }
                 }
