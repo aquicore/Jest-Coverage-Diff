@@ -9819,6 +9819,34 @@ class DiffChecker {
         const reportNewKeys = Object.keys(coverageReportNew);
         const reportOldKeys = Object.keys(coverageReportOld);
         const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
+        const temporaryReport = JSON.parse(JSON.stringify(coverageReportOld));
+        for (const filePath of reportNewKeys) {
+            if (filePath === 'total')
+                continue;
+            temporaryReport[filePath] = coverageReportNew[filePath];
+        }
+        const total = {
+            lines: { total: 0, covered: 0, skipped: 0, pct: 0 },
+            statements: { total: 0, covered: 0, skipped: 0, pct: 0 },
+            functions: { total: 0, covered: 0, skipped: 0, pct: 0 },
+            branches: { total: 0, covered: 0, skipped: 0, pct: 0 }
+        };
+        for (const key in temporaryReport) {
+            if (key !== 'total')
+                continue;
+            const item = temporaryReport[key];
+            for (const metricType in item) {
+                const metric = item[metricType];
+                total[metricType]['total'] += Number(metric.total);
+                total[metricType]['covered'] += Number(metric.covered);
+                total[metricType]['skipped'] += Number(metric.skipped);
+            }
+        }
+        for (const metricType in total) {
+            const metric = total[metricType];
+            metric.pct = Math.floor((metric.covered / metric.total) * 100);
+        }
+        coverageReportNew.total = total;
         for (const filePath of reportKeys) {
             if (reportNewKeys.includes(filePath)) {
                 this.diffCoverageReport[filePath] = {
@@ -9859,14 +9887,15 @@ class DiffChecker {
     }
     checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta) {
         const { total } = this.diffCoverageReport;
+        const funcPercentageDiff = this.getPercentageDiff(total.functions);
         return (total &&
             total.functions.oldPct !== total.functions.newPct &&
-            -this.getPercentageDiff(total.functions) >= delta);
+            Math.abs(funcPercentageDiff) >= delta);
     }
     checkIfTestCoverageFallsBelowDelta(delta) {
-        const keys = Object.keys(this.diffCoverageReport);
-        for (const key of keys) {
-            const diffCoverageData = this.diffCoverageReport[key];
+        const changedFiles = Object.keys(this.diffCoverageReport);
+        for (const fileName of changedFiles) {
+            const diffCoverageData = this.diffCoverageReport[fileName];
             const keys = Object.keys(diffCoverageData);
             // No new coverage found so that means we deleted a file coverage
             const fileRemovedCoverage = Object.values(diffCoverageData).every(coverageData => coverageData.newPct === 0);
@@ -9876,7 +9905,8 @@ class DiffChecker {
             }
             for (const key of keys) {
                 if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
-                    if (-this.getPercentageDiff(diffCoverageData[key]) >= delta) {
+                    const percentageDiff = this.getPercentageDiff(diffCoverageData[key]);
+                    if (Math.abs(percentageDiff) >= delta) {
                         return true;
                     }
                 }
