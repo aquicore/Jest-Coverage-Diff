@@ -3,6 +3,7 @@ import {DiffCoverageReport} from './Model/DiffCoverageReport'
 import {CoverageData} from './Model/CoverageData'
 import {DiffFileCoverageData} from './Model/DiffFileCoverageData'
 import {DiffCoverageData} from './Model/DiffCoverageData'
+import {FileCoverageData} from './Model/FileCoverageData'
 
 const increasedCoverageIcon = ':green_circle::dog:'
 const decreasedCoverageIcon = ':red_circle:'
@@ -20,22 +21,24 @@ export class DiffChecker {
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
 
     for (const filePath of reportKeys) {
-      this.diffCoverageReport[filePath] = {
-        branches: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.branches),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.branches)
-        },
-        statements: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.statements),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.statements)
-        },
-        lines: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.lines),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.lines)
-        },
-        functions: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.functions),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.functions)
+      if (reportNewKeys.includes(filePath)) {
+        this.diffCoverageReport[filePath] = {
+          branches: {
+            newPct: this.getPercentage(coverageReportNew[filePath]?.branches),
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.branches)
+          },
+          statements: {
+            newPct: this.getPercentage(coverageReportNew[filePath]?.statements),
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.statements)
+          },
+          lines: {
+            newPct: this.getPercentage(coverageReportNew[filePath]?.lines),
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.lines)
+          },
+          functions: {
+            newPct: this.getPercentage(coverageReportNew[filePath]?.functions),
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.functions)
+          }
         }
       }
     }

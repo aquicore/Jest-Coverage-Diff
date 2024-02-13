@@ -9820,24 +9820,26 @@ class DiffChecker {
         const reportOldKeys = Object.keys(coverageReportOld);
         const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
         for (const filePath of reportKeys) {
-            this.diffCoverageReport[filePath] = {
-                branches: {
-                    newPct: this.getPercentage((_a = coverageReportNew[filePath]) === null || _a === void 0 ? void 0 : _a.branches),
-                    oldPct: this.getPercentage((_b = coverageReportOld[filePath]) === null || _b === void 0 ? void 0 : _b.branches)
-                },
-                statements: {
-                    newPct: this.getPercentage((_c = coverageReportNew[filePath]) === null || _c === void 0 ? void 0 : _c.statements),
-                    oldPct: this.getPercentage((_d = coverageReportOld[filePath]) === null || _d === void 0 ? void 0 : _d.statements)
-                },
-                lines: {
-                    newPct: this.getPercentage((_e = coverageReportNew[filePath]) === null || _e === void 0 ? void 0 : _e.lines),
-                    oldPct: this.getPercentage((_f = coverageReportOld[filePath]) === null || _f === void 0 ? void 0 : _f.lines)
-                },
-                functions: {
-                    newPct: this.getPercentage((_g = coverageReportNew[filePath]) === null || _g === void 0 ? void 0 : _g.functions),
-                    oldPct: this.getPercentage((_h = coverageReportOld[filePath]) === null || _h === void 0 ? void 0 : _h.functions)
-                }
-            };
+            if (reportNewKeys.includes(filePath)) {
+                this.diffCoverageReport[filePath] = {
+                    branches: {
+                        newPct: this.getPercentage((_a = coverageReportNew[filePath]) === null || _a === void 0 ? void 0 : _a.branches),
+                        oldPct: this.getPercentage((_b = coverageReportOld[filePath]) === null || _b === void 0 ? void 0 : _b.branches)
+                    },
+                    statements: {
+                        newPct: this.getPercentage((_c = coverageReportNew[filePath]) === null || _c === void 0 ? void 0 : _c.statements),
+                        oldPct: this.getPercentage((_d = coverageReportOld[filePath]) === null || _d === void 0 ? void 0 : _d.statements)
+                    },
+                    lines: {
+                        newPct: this.getPercentage((_e = coverageReportNew[filePath]) === null || _e === void 0 ? void 0 : _e.lines),
+                        oldPct: this.getPercentage((_f = coverageReportOld[filePath]) === null || _f === void 0 ? void 0 : _f.lines)
+                    },
+                    functions: {
+                        newPct: this.getPercentage((_g = coverageReportNew[filePath]) === null || _g === void 0 ? void 0 : _g.functions),
+                        oldPct: this.getPercentage((_h = coverageReportOld[filePath]) === null || _h === void 0 ? void 0 : _h.functions)
+                    }
+                };
+            }
         }
     }
     getCoverageDetails(diffOnly, currentDirectory, delta = 1) {
