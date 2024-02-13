@@ -50,18 +50,13 @@ export class DiffChecker {
 
     coverageReportNew.total = <FileCoverageData>total
 
-    console.log('New Report keys: ', coverageReportNew)
-    console.log(
-      'Old Report keys: ',
-      coverageReportOld[
-        '/home/runner/work/frontend/frontend/src/utils/ApiUtils.ts'
-      ]
-    )
-    console.log('Old Report keys: ', coverageReportOld['total'])
-    console.log('Report keys: ', reportKeys)
+    console.log('Old Report Total: ', coverageReportOld['total'])
+    console.log('New Report Total: ', coverageReportNew['total'])
 
     for (const filePath of reportKeys) {
       if (reportNewKeys.includes(filePath)) {
+        console.log('Old Report keys: ', coverageReportOld[filePath])
+        console.log('---- DIFF : ------', this.diffCoverageReport[filePath])
         this.diffCoverageReport[filePath] = {
           branches: {
             newPct: this.getPercentage(coverageReportNew[filePath]?.branches),
@@ -80,11 +75,6 @@ export class DiffChecker {
             oldPct: this.getPercentage(coverageReportOld[filePath]?.functions)
           }
         }
-        if (
-          filePath ===
-          '/home/runner/work/frontend/frontend/src/utils/ApiUtils.ts'
-        )
-          console.log('----HEYHEY ------', this.diffCoverageReport[filePath])
       }
     }
   }
