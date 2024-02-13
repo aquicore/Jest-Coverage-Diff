@@ -9837,18 +9837,19 @@ class DiffChecker {
             const item = temporaryReport[key];
             for (const metricType in item) {
                 const metric = item[metricType];
-                total[metricType]['total'] += metric.total;
-                total[metricType]['covered'] += metric.covered;
-                total[metricType]['skipped'] += metric.skipped;
+                total[metricType]['total'] += Number(metric.total);
+                total[metricType]['covered'] += Number(metric.covered);
+                total[metricType]['skipped'] += Number(metric.skipped);
             }
         }
         for (const metricType in total) {
             const metric = total[metricType];
-            metric.pct = Math.floor((metric.covered / metric.total) * 100 * 100) / 100;
+            metric.pct = (metric.covered / metric.total) * 100;
         }
         coverageReportNew.total = total;
         console.log('New Report keys: ', coverageReportNew);
-        console.log('Old Report keys: ', coverageReportOld);
+        console.log('Old Report keys: ', coverageReportOld['/home/runner/work/frontend/frontend/src/utils/ApiUtils.ts']);
+        console.log('Old Report keys: ', coverageReportOld['total']);
         console.log('Report keys: ', reportKeys);
         for (const filePath of reportKeys) {
             if (reportNewKeys.includes(filePath)) {
@@ -9870,6 +9871,9 @@ class DiffChecker {
                         oldPct: this.getPercentage((_h = coverageReportOld[filePath]) === null || _h === void 0 ? void 0 : _h.functions)
                     }
                 };
+                if (filePath ===
+                    '/home/runner/work/frontend/frontend/src/utils/ApiUtils.ts')
+                    console.log('----HEYHEY ------', this.diffCoverageReport[filePath]);
             }
         }
     }
