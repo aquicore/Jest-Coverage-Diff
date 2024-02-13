@@ -9819,6 +9819,34 @@ class DiffChecker {
         const reportNewKeys = Object.keys(coverageReportNew);
         const reportOldKeys = Object.keys(coverageReportOld);
         const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
+        const temporaryReport = JSON.parse(JSON.stringify(coverageReportOld));
+        for (const filePath of reportNewKeys) {
+            if (filePath === 'total')
+                continue;
+            temporaryReport[filePath] = coverageReportNew[filePath];
+        }
+        const total = {
+            lines: { total: 0, covered: 0, skipped: 0, pct: 0 },
+            statements: { total: 0, covered: 0, skipped: 0, pct: 0 },
+            functions: { total: 0, covered: 0, skipped: 0, pct: 0 },
+            branches: { total: 0, covered: 0, skipped: 0, pct: 0 }
+        };
+        for (const key in temporaryReport) {
+            if (key === 'total')
+                continue;
+            const item = temporaryReport[key];
+            for (const metricType in item) {
+                const metric = item[metricType];
+                total[metricType]['total'] += metric.total;
+                total[metricType]['covered'] += metric.covered;
+                total[metricType]['skipped'] += metric.skipped;
+            }
+        }
+        for (const metricType in total) {
+            const metric = total[metricType];
+            metric.pct = Math.floor((metric.covered / metric.total) * 100 * 100) / 100;
+        }
+        coverageReportNew.total = total;
         console.log('New Report keys: ', coverageReportNew);
         console.log('Old Report keys: ', coverageReportOld);
         console.log('Report keys: ', reportKeys);
