@@ -56,7 +56,6 @@ export class DiffChecker {
     for (const filePath of reportKeys) {
       if (reportNewKeys.includes(filePath)) {
         console.log('Old Report keys: ', coverageReportOld[filePath])
-        console.log('---- DIFF : ------', this.diffCoverageReport[filePath])
         this.diffCoverageReport[filePath] = {
           branches: {
             newPct: this.getPercentage(coverageReportNew[filePath]?.branches),
@@ -75,6 +74,8 @@ export class DiffChecker {
             oldPct: this.getPercentage(coverageReportOld[filePath]?.functions)
           }
         }
+
+        console.log('---- DIFF : ------', this.diffCoverageReport[filePath])
       }
     }
   }
