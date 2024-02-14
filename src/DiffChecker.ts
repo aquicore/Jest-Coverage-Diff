@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {CoverageReport} from './Model/CoverageReport'
 import {DiffCoverageReport} from './Model/DiffCoverageReport'
 import {CoverageData} from './Model/CoverageData'
@@ -36,21 +37,31 @@ export class DiffChecker {
       const item = temporaryReport[key]
       for (const metricType in item) {
         const metric = item[metricType]
-        total[metricType]['total'] += metric.total
-        total[metricType]['covered'] += metric.covered
-        total[metricType]['skipped'] += metric.skipped
+        total[metricType]['total'] += Number(metric.total)
+        total[metricType]['covered'] += Number(metric.covered)
+        total[metricType]['skipped'] += Number(metric.skipped)
       }
     }
 
     for (const metricType in total) {
       const metric = total[metricType]
-      metric.pct = Math.floor((metric.covered / metric.total) * 100 * 100) / 100
+      const relation = metric.covered / metric.total
+      const matchResult = (relation * 100)
+        .toString()
+        .match(/^-?\d+(?:\.\d{0,2})?/)
+
+      const result = matchResult ? matchResult[0] : ''
+
+      metric.pct = +result
     }
 
     coverageReportNew.total = <FileCoverageData>total
 
     for (const filePath of reportKeys) {
       if (reportNewKeys.includes(filePath)) {
+        console.log(`_________ ${filePath} _________`)
+        console.log(`>> Old Report: <<'`, coverageReportOld[filePath])
+        console.log(`>>> New Report: <<<'`, coverageReportNew[filePath])
         this.diffCoverageReport[filePath] = {
           branches: {
             newPct: this.getPercentage(coverageReportNew[filePath]?.branches),
@@ -66,9 +77,13 @@ export class DiffChecker {
           },
           functions: {
             newPct: this.getPercentage(coverageReportNew[filePath]?.functions),
-            oldPct: this.getPercentage(coverageReportOld[filePath]?.functions)
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.functions),
+            newCovered: coverageReportNew[filePath]?.functions.covered,
+            oldCovered: coverageReportOld[filePath]?.functions.covered
           }
         }
+
+        console.log(`-- DIF: --`, this.diffCoverageReport[filePath])
       }
     }
   }
@@ -106,10 +121,14 @@ export class DiffChecker {
 
   checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta: number): boolean {
     const {total} = this.diffCoverageReport
-    const funcPercentageDiff = this.getPercentageDiff(total.functions)
+    const comparison = {
+      oldPct: total.functions.oldCovered,
+      newPct: total.functions.newCovered
+    }
+    const funcPercentageDiff = this.getPercentageDiff(comparison)
     return (
       total &&
-      total.functions.oldPct !== total.functions.newPct &&
+      total.functions.oldCovered !== total.functions.newCovered &&
       funcPercentageDiff < 0 &&
       Math.abs(funcPercentageDiff) >= delta
     )

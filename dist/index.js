@@ -9814,7 +9814,7 @@ const newCoverageIcon = ':sparkles: :new:';
 const removedCoverageIcon = ':x:';
 class DiffChecker {
     constructor(coverageReportNew, coverageReportOld) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         this.diffCoverageReport = {};
         const reportNewKeys = Object.keys(coverageReportNew);
         const reportOldKeys = Object.keys(coverageReportOld);
@@ -9837,18 +9837,26 @@ class DiffChecker {
             const item = temporaryReport[key];
             for (const metricType in item) {
                 const metric = item[metricType];
-                total[metricType]['total'] += metric.total;
-                total[metricType]['covered'] += metric.covered;
-                total[metricType]['skipped'] += metric.skipped;
+                total[metricType]['total'] += Number(metric.total);
+                total[metricType]['covered'] += Number(metric.covered);
+                total[metricType]['skipped'] += Number(metric.skipped);
             }
         }
         for (const metricType in total) {
             const metric = total[metricType];
-            metric.pct = Math.floor((metric.covered / metric.total) * 100 * 100) / 100;
+            const relation = metric.covered / metric.total;
+            const matchResult = (relation * 100)
+                .toString()
+                .match(/^-?\d+(?:\.\d{0,2})?/);
+            const result = matchResult ? matchResult[0] : '';
+            metric.pct = +result;
         }
         coverageReportNew.total = total;
         for (const filePath of reportKeys) {
             if (reportNewKeys.includes(filePath)) {
+                console.log(`_________ ${filePath} _________`);
+                console.log(`>> Old Report: <<'`, coverageReportOld[filePath]);
+                console.log(`>>> New Report: <<<'`, coverageReportNew[filePath]);
                 this.diffCoverageReport[filePath] = {
                     branches: {
                         newPct: this.getPercentage((_a = coverageReportNew[filePath]) === null || _a === void 0 ? void 0 : _a.branches),
@@ -9864,9 +9872,12 @@ class DiffChecker {
                     },
                     functions: {
                         newPct: this.getPercentage((_g = coverageReportNew[filePath]) === null || _g === void 0 ? void 0 : _g.functions),
-                        oldPct: this.getPercentage((_h = coverageReportOld[filePath]) === null || _h === void 0 ? void 0 : _h.functions)
+                        oldPct: this.getPercentage((_h = coverageReportOld[filePath]) === null || _h === void 0 ? void 0 : _h.functions),
+                        newCovered: (_j = coverageReportNew[filePath]) === null || _j === void 0 ? void 0 : _j.functions.covered,
+                        oldCovered: (_k = coverageReportOld[filePath]) === null || _k === void 0 ? void 0 : _k.functions.covered
                     }
                 };
+                console.log(`-- DIF: --`, this.diffCoverageReport[filePath]);
             }
         }
     }
@@ -9887,9 +9898,13 @@ class DiffChecker {
     }
     checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta) {
         const { total } = this.diffCoverageReport;
-        const funcPercentageDiff = this.getPercentageDiff(total.functions);
+        const comparison = {
+            oldPct: total.functions.oldCovered,
+            newPct: total.functions.newCovered
+        };
+        const funcPercentageDiff = this.getPercentageDiff(comparison);
         return (total &&
-            total.functions.oldPct !== total.functions.newPct &&
+            total.functions.oldCovered !== total.functions.newCovered &&
             funcPercentageDiff < 0 &&
             Math.abs(funcPercentageDiff) >= delta);
     }
