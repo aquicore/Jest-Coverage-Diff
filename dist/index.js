@@ -9898,9 +9898,13 @@ class DiffChecker {
     }
     checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta) {
         const { total } = this.diffCoverageReport;
-        const funcPercentageDiff = this.getPercentageDiff(total.functions);
+        const comparison = {
+            oldPct: total.functions.oldCovered,
+            newPct: total.functions.newCovered
+        };
+        const funcPercentageDiff = this.getPercentageDiff(comparison);
         return (total &&
-            total.functions.oldPct !== total.functions.newPct &&
+            total.functions.oldCovered !== total.functions.newCovered &&
             funcPercentageDiff < 0 &&
             Math.abs(funcPercentageDiff) >= delta);
     }
