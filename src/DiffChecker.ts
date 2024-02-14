@@ -152,7 +152,7 @@ export class DiffChecker {
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
           const percentageDiff = this.getPercentageDiff(diffCoverageData[key])
-          if (percentageDiff <= 0 && Math.abs(percentageDiff) >= delta) {
+          if (percentageDiff < 0 && Math.abs(percentageDiff) >= delta) {
             return true
           }
         }
