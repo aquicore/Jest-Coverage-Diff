@@ -52,7 +52,7 @@ export class DiffChecker {
 
     for (const filePath of reportKeys) {
       if (reportNewKeys.includes(filePath)) {
-        console.log(`__________ ${filePath} _________`)
+        console.log(`_________ ${filePath} _________`)
         console.log(`>> Old Report: <<'`, coverageReportOld[filePath])
         console.log(`>>> New Report: <<<'`, coverageReportNew[filePath])
         this.diffCoverageReport[filePath] = {
@@ -70,7 +70,9 @@ export class DiffChecker {
           },
           functions: {
             newPct: this.getPercentage(coverageReportNew[filePath]?.functions),
-            oldPct: this.getPercentage(coverageReportOld[filePath]?.functions)
+            oldPct: this.getPercentage(coverageReportOld[filePath]?.functions),
+            newCovered: coverageReportNew[filePath]?.functions.covered,
+            oldCovered: coverageReportOld[filePath]?.functions.covered
           }
         }
 
@@ -112,10 +114,14 @@ export class DiffChecker {
 
   checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta: number): boolean {
     const {total} = this.diffCoverageReport
-    const funcPercentageDiff = this.getPercentageDiff(total.functions)
+    const comparison = {
+      oldPct: total.functions.oldCovered,
+      newPct: total.functions.newCovered
+    }
+    const funcPercentageDiff = this.getPercentageDiff(comparison)
     return (
       total &&
-      total.functions.oldPct !== total.functions.newPct &&
+      total.functions.oldCovered !== total.functions.newCovered &&
       funcPercentageDiff < 0 &&
       Math.abs(funcPercentageDiff) >= delta
     )

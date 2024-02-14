@@ -9814,7 +9814,7 @@ const newCoverageIcon = ':sparkles: :new:';
 const removedCoverageIcon = ':x:';
 class DiffChecker {
     constructor(coverageReportNew, coverageReportOld) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         this.diffCoverageReport = {};
         const reportNewKeys = Object.keys(coverageReportNew);
         const reportOldKeys = Object.keys(coverageReportOld);
@@ -9849,7 +9849,7 @@ class DiffChecker {
         coverageReportNew.total = total;
         for (const filePath of reportKeys) {
             if (reportNewKeys.includes(filePath)) {
-                console.log(`__________ ${filePath} _________`);
+                console.log(`_________ ${filePath} _________`);
                 console.log(`>> Old Report: <<'`, coverageReportOld[filePath]);
                 console.log(`>>> New Report: <<<'`, coverageReportNew[filePath]);
                 this.diffCoverageReport[filePath] = {
@@ -9867,7 +9867,9 @@ class DiffChecker {
                     },
                     functions: {
                         newPct: this.getPercentage((_g = coverageReportNew[filePath]) === null || _g === void 0 ? void 0 : _g.functions),
-                        oldPct: this.getPercentage((_h = coverageReportOld[filePath]) === null || _h === void 0 ? void 0 : _h.functions)
+                        oldPct: this.getPercentage((_h = coverageReportOld[filePath]) === null || _h === void 0 ? void 0 : _h.functions),
+                        newCovered: (_j = coverageReportNew[filePath]) === null || _j === void 0 ? void 0 : _j.functions.covered,
+                        oldCovered: (_k = coverageReportOld[filePath]) === null || _k === void 0 ? void 0 : _k.functions.covered
                     }
                 };
                 console.log(`-- DIF: --`, this.diffCoverageReport[filePath]);
@@ -9891,9 +9893,13 @@ class DiffChecker {
     }
     checkIfTestCoverageFallsBelowTotalFunctionalDelta(delta) {
         const { total } = this.diffCoverageReport;
-        const funcPercentageDiff = this.getPercentageDiff(total.functions);
+        const comparison = {
+            oldPct: total.functions.oldCovered,
+            newPct: total.functions.newCovered
+        };
+        const funcPercentageDiff = this.getPercentageDiff(comparison);
         return (total &&
-            total.functions.oldPct !== total.functions.newPct &&
+            total.functions.oldCovered !== total.functions.newCovered &&
             funcPercentageDiff < 0 &&
             Math.abs(funcPercentageDiff) >= delta);
     }
