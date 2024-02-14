@@ -9844,7 +9844,7 @@ class DiffChecker {
         }
         for (const metricType in total) {
             const metric = total[metricType];
-            metric.pct = (metric.covered / metric.total) * 100;
+            metric.pct = ((metric.covered / metric.total) * 100).toFixed(2);
         }
         coverageReportNew.total = total;
         for (const filePath of reportKeys) {
