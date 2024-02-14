@@ -45,7 +45,14 @@ export class DiffChecker {
 
     for (const metricType in total) {
       const metric = total[metricType]
-      metric.pct = +(metric.covered / metric.total).toFixed(2) * 100
+      const relation = metric.covered / metric.total
+      const matchResult = (relation * 100)
+        .toString()
+        .match(/^-?\d+(?:\.\d{0,2})?/)
+
+      const result = matchResult ? matchResult[0] : ''
+
+      metric.pct = +result
     }
 
     coverageReportNew.total = <FileCoverageData>total
